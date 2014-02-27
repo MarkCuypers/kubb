@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd"
+       default-autowire="byName">
+    <context:component-scan base-package="be.markito.kubb.api.service"/>
+    <context:component-scan base-package="be.markito.kubb.api.persistence"/>
+
+    <bean id="kubbFlyway" class="com.googlecode.flyway.core.Flyway" init-method="migrate"
+          depends-on="kubbTransactionManager, kubbDataSource">
+        <property name="dataSource" ref="kubbDataSource"/>
+    </bean>
+
+    <bean id="kubbDataSource" destroy-method="close" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${jdbc.driverClassName}"/>
+        <property name="jdbcUrl" value="${jdbc.url}"/>
+        <property name="user" value="${jdbc.user}"/>
+        <property name="password" value="${jdbc.password}"/>
+
+        <property name="acquireIncrement" value="${jdbc.acquireIncrement}"/>
+        <property name="minPoolSize" value="${jdbc.minPoolSize}"/>
+        <property name="maxPoolSize" value="${jdbc.maxPoolSize}"/>
+        <property name="maxStatementsPerConnection" value="${jdbc.maxStatementsPerConnection}"/>
+        <property name="idleConnectionTestPeriod" value="${jdbc.idleConnectionTestPeriod}"/>
+        <property name="acquireRetryAttempts" value="${jdbc.acquireRetryAttempts}"/>
+        <property name="acquireRetryDelay" value="${jdbc.acquireRetryDelay}"/>
+        <property name="breakAfterAcquireFailure" value="${jdbc.breakAfterAcquireFailure}"/>
+        <property name="maxIdleTime" value="${jdbc.maxIdleTime}"/>
+        <property name="maxConnectionAge" value="${jdbc.maxConnectionAge}"/>
+        <property name="maxIdleTimeExcessConnections" value="${jdbc.maxIdleTimeExcessConnections}"/>
+        <property name="preferredTestQuery" value="${jdbc.preferredTestQuery}"/>
+    </bean>
+
+    <bean id="kubbEntityManagerFactory"
+          class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
+          p:dataSource-ref="kubbDataSource" p:persistenceUnitName="kubbPU">
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"
+                  p:generateDdl="${jpa.generateDdl}" p:showSql="${jpa.showSql}"/>
+        </property>
+    </bean>
+
+
+    <bean id="kubbTransactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="kubbEntityManagerFactory"/>
+    </bean>
+
+    <tx:annotation-driven transaction-manager="kubbTransactionManager"/>
+
+    <context:annotation-config/>
+
+    <bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor"/>
+</beans>
