@@ -1,10 +1,11 @@
 define(["dojo/_base/declare", "dijit/_WidgetBase", "dijit/_TemplatedMixin",
     "dojo/text!./AppWidget.html", "dojo/request", "dojo/dom-construct",
+    "dojo/store/Memory", "dgrid/OnDemandGrid",
 
     "dojox/mobile/TabBar", "dojox/mobile/TabBarButton", "dojox/mobile/ScrollableView",
     "dojox/mobile/RoundRect"
 ],
-    function (declare, _WidgetBase, _TemplatedMixin, template, request, domConstruct) {
+    function (declare, _WidgetBase, _TemplatedMixin, template, request, domConstruct, Memory, OnDemandGrid) {
         return declare([_WidgetBase, _TemplatedMixin], {
             templateString: template,
             baseClass: "AppWidget",
@@ -31,19 +32,15 @@ define(["dojo/_base/declare", "dijit/_WidgetBase", "dijit/_TemplatedMixin",
                     }
                 });
                 loadPromise.then(function (data) {
-                    if (data) {
-                        console.info("data found!");
-                        var ulNode = domConstruct.create("ul");
-                        domConstruct.place(ulNode, self._teamsGrid);
-                        data.forEach(function (team) {
-                            var liNode = domConstruct.create("li");
-                            liNode.innerHTML = team.name;
-                            domConstruct.place(liNode, ulNode);
-                        })
-                    }
-                    else {
-                        console.error("No data found");
-                    }
+                    var store = new Memory({data: data});
+
+                    var grid = new OnDemandGrid({
+                       store: store,
+                        columns: {
+                            name: "Team name"
+                        }
+                    }, "teamsTab");
+                    grid.startup();
                 }, function (err) {
                     console.error("Error: " + err);
                 }, function (evt) {
