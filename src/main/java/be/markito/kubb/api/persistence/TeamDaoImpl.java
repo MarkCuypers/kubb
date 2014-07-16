@@ -37,7 +37,7 @@ public class TeamDaoImpl extends AbstractBaseDao implements TeamDao {
             predicates.add(cb.like(cb.upper(from.get(Team_.name)), "%" + StringUtils.upperCase(filter.getName()) + "%"));
         }
         query.where(cb.and(predicates.toArray(new Predicate[predicates.size()])));
-        query.orderBy(cb.asc(from.get(Team_.id)));
+        query.orderBy(cb.asc(from.get(Team_.name)));
         TypedQuery<Team> q = getEm().createQuery(query);
         return q.getResultList();
     }
